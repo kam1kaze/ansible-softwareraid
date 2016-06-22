@@ -5,6 +5,10 @@
     apt: pkg=mdadm state=installed update_cache=yes cache_valid_time=3600
     when: software_raid_devices is defined and ansible_os_family == "Debian"
 
+  - name: software raid - install raid package
+    yum: name=mdadm state=installed
+    when: software_raid_devices is defined and ansible_os_family == "RedHat"
+
   - name: software raid - check existing raid devices
     shell: "mdadm -D {{ item.device }}"
     ignore_errors: yes
@@ -27,7 +31,11 @@
 
   - name: software raid - create mdadm config file
     template: src=mdadm.conf.j2 dest=/etc/mdadm/mdadm.conf
-    when: software_raid_devices is defined
+    when: software_raid_devices is defined and ansible_os_family == "Debian"
+
+  - name: software raid - create mdadm config file
+    template: src=mdadm.conf.j2 dest=/etc/mdadm.conf
+    when: software_raid_devices is defined and ansible_os_family == "RedHat"
 
   - name: software raid - update initramfs
     shell: "update-initramfs -u"
